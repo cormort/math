@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>數學遊樂場</title>
+<style>
+  :root { --ink: #2d2a4a; --bg: #fff6e0; --yellow: #ffd93d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    background: var(--bg) radial-gradient(#ffe3a3 2px, transparent 2px) 0 0 / 28px 28px;
+    color: var(--ink); line-height: 1.5; padding: 32px 16px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { text-align: center; font-size: clamp(1.8rem, 6vw, 2.8rem); font-weight: 900; text-shadow: 3px 3px 0 var(--yellow); }
+  .sub { text-align: center; font-weight: 700; color: #6b6590; margin-bottom: 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+  a.card {
+    display: block; text-decoration: none; color: inherit; background: #fff;
+    border: 3px solid var(--ink); border-radius: 22px; box-shadow: 0 6px 0 var(--ink);
+    padding: 18px; transition: transform .1s, box-shadow .1s;
+  }
+  a.card:hover { transform: translateY(-3px); box-shadow: 0 9px 0 var(--ink); }
+  a.card:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
+  .icon { font-size: 2.6rem; }
+  .card h2 { font-size: 1.3rem; margin: 4px 0; }
+  .card p { font-weight: 600; color: #4d4870; }
+  .tag { display: inline-block; margin-top: 8px; background: var(--yellow); border: 2px solid var(--ink); border-radius: 999px; padding: 0 .6em; font-size: .85rem; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧮 數學遊樂場</h1>
+  <p class="sub">動手玩，把數學看清楚！</p>
+  <div class="grid">
+    <a class="card" href="big-foot-division/">
+      <div class="icon">🦍👣</div>
+      <h2>大腳怪分分樂</h2>
+      <p>10 個一盒分糖果，先用大腳法、再用直式除法，比比看誰快！</p>
+      <span class="tag">除法</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

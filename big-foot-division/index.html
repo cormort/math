@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大腳怪分分樂</title>
+<style>
+  :root {
+    --ink: #2d2a4a;
+    --bg: #fff6e0;
+    --blue: #4d96ff;
+    --green: #2fbf71;
+    --pink: #ff6b9d;
+    --yellow: #ffd93d;
+    --purple: #8b5cf6;
+    --item: #ff6b9d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    background: var(--bg) radial-gradient(#ffe3a3 2px, transparent 2px) 0 0 / 28px 28px;
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 16px 16px 40px;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  header { text-align: center; margin-bottom: 14px; position: relative; }
+  h1 { font-size: clamp(1.6rem, 5vw, 2.5rem); font-weight: 900; letter-spacing: .04em; text-shadow: 3px 3px 0 var(--yellow); }
+  header p { font-weight: 700; color: #6b6590; }
+  #btnMute { position: absolute; right: 0; top: 0; font-size: 1.3rem; }
+  #home { position: absolute; left: 0; top: 0; font-size: 1.3rem; text-decoration: none; }
+
+  @media (max-width: 600px) { header { padding: 0 56px; } }
+  .btn {
+    white-space: nowrap; color: inherit;
+    border: 3px solid var(--ink); border-radius: 14px; background: #fff;
+    padding: .4em .9em; font-weight: 800;
+    box-shadow: 0 4px 0 var(--ink); transition: transform .08s, box-shadow .08s;
+  }
+  .btn:active:not(:disabled), .btn.press { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.blue { background: var(--blue); color: #fff; }
+  .btn.green { background: var(--green); color: #fff; }
+  .btn.zap { background: var(--purple); color: #fff; }
+  .btn.on { background: var(--yellow); }
+
+  .card { background: #fff; border: 3px solid var(--ink); border-radius: 22px; box-shadow: 0 6px 0 var(--ink); padding: 16px; }
+
+  .setup { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-bottom: 18px; }
+  .custom { display: flex; align-items: center; gap: 6px; font-weight: 900; font-size: 1.2rem; }
+  .custom input {
+    width: 4.2em; font: inherit; text-align: center;
+    border: 3px solid var(--ink); border-radius: 12px; padding: .2em; background: #fff;
+  }
+
+  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  /* 模式切換 */
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .mode { font-size: 1.1rem; padding: .5em; line-height: 1.25; white-space: normal; }
+  .mode small { display: block; font-size: .78rem; font-weight: 700; opacity: .8; }
+  .mode.on.foot { background: var(--yellow); }
+  .mode.on.long { background: var(--purple); color: #fff; }
+
+  /* 吉祥物 */
+  .mascot { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+  .bigfoot { font-size: 3.4rem; line-height: 1; flex: none; text-align: center; animation: bob 2s ease-in-out infinite; }
+  .bigfoot small { display: block; font-size: .8rem; font-weight: 900; }
+  .bubble {
+    position: relative; flex: 1; min-height: 3.6em;
+    background: #eaf3ff; border: 3px solid var(--ink); border-radius: 18px;
+    padding: 10px 14px; font-size: 1.08rem; font-weight: 700;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -15px; top: 18px;
+    border: 8px solid transparent; border-right: 12px solid var(--ink); border-left: 0;
+  }
+  .bubble b { color: #e0447c; }
+  .bubble.oops { background: #ffe1e1; animation: shake .4s; }
+  .bubble.yay { background: #ddfbe8; animation: pop .5s; }
+
+  /* 倉庫：10 個一盒 */
+  .pool-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; }
+  .count { background: var(--yellow); border: 2px solid var(--ink); border-radius: 999px; padding: 0 .7em; font-size: 1rem; }
+  .pool {
+    display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start;
+    padding: 10px; min-height: 64px; max-height: 200px; overflow-y: auto;
+    background: #fff8ec; border: 3px dashed #e7c88a; border-radius: 14px;
+  }
+  .box { display: grid; grid-template-columns: repeat(5, 11px); gap: 3px; padding: 4px; border: 2px solid var(--ink); border-radius: 7px; background: #fff; }
+  .box.loose { border-style: dashed; background: #fffbe6; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--item); }
+  .dot.gone { animation: gone .5s forwards; }
+  .empty { color: #b39b6a; font-weight: 800; align-self: center; }
+
+  /* 選擇每人分幾個 */
+  .ask { margin: 16px 0 8px; font-weight: 900; font-size: 1.2rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; }
+  .chips > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chips label { font-weight: 900; font-size: .85rem; color: #6b6590; width: 100%; }
+  .chip { min-width: 2.7em; font-size: 1.25rem; padding: .25em .5em; }
+  .chip.big { background: var(--yellow); }
+  .chip.glow { animation: glow .8s 3; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+  /* 好朋友 */
+  .friends { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; margin-top: 18px; }
+  .friend { border: 3px solid var(--ink); border-radius: 16px; background: #fff; text-align: center; padding: 6px 4px; }
+  .friend .face { font-size: 2rem; line-height: 1.15; }
+  .friend .got { font-weight: 900; font-size: 1.2rem; }
+  .friend.bump { animation: bump .4s; }
+  .friends.party .friend { animation: jump .6s calc(var(--i) * 60ms) 3; }
+
+  /* 算式紀錄 */
+  .record h2 { font-size: 1.25rem; margin-bottom: 4px; }
+  .foot { border-collapse: collapse; font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; margin: 8px auto; }
+  .foot td { padding: 1px 8px; text-align: right; }
+  .foot.long td { padding: 1px 5px; text-align: center; min-width: 1.1em; }
+  .foot .op { color: #8a85a8; }
+  .foot .top { border-top: 3px solid var(--ink); }
+  .foot .line { border-bottom: 3px solid var(--ink); }
+  .foot .q { border-left: 4px solid var(--ink); min-width: 3.4em; text-align: left; padding-left: 10px; }
+  .foot .qn { display: inline-block; background: var(--yellow); border: 2px solid var(--ink); border-radius: 999px; padding: 0 .5em; font-size: 1.1rem; }
+  .foot .qd { color: var(--purple); }
+  .foot .sum { border-top: 3px solid var(--ink); color: var(--green); }
+  .foot .rem { color: var(--pink); }
+  .foot tr.new td, .foot td.new { animation: pop .5s; }
+  .answer { margin-top: 10px; padding: 10px; text-align: center; background: #ddfbe8; border: 3px solid var(--ink); border-radius: 14px; font-size: 1.4rem; font-weight: 900; }
+  .answer small { display: block; font-size: .95rem; color: #4d4870; }
+  .answer .vs { margin-top: 8px; font-size: 1rem; background: #fff; border-radius: 10px; padding: 6px; }
+  .answer .btn { margin-top: 8px; font-size: 1rem; }
+  .tip { margin-top: 10px; font-size: .92rem; font-weight: 700; color: #6b6590; }
+
+  .fly { position: fixed; left: 0; top: 0; font-size: 22px; pointer-events: none; z-index: 50; }
+  .confetti { position: fixed; top: -20px; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; z-index: 60; }
+
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(-4deg); } }
+  @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  @keyframes pop { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } }
+  @keyframes bump { 50% { transform: scale(1.18) rotate(-5deg); background: #fff3b0; } }
+  @keyframes jump { 50% { transform: translateY(-14px); } }
+  @keyframes gone { to { transform: scale(0); opacity: 0; } }
+  @keyframes glow { 50% { box-shadow: 0 4px 0 var(--ink), 0 0 0 8px rgba(255, 217, 61, .9); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🦍 大腳怪分分樂 👣</h1>
+    <p>先用大腳法一盒一盒分，再用 ⚡直式除法 一位一位分，比比看誰快！</p>
+    <a class="btn" id="home" href="../" title="回數學遊樂場">🏠</a>
+    <button class="btn" id="btnMute" title="音效開關">🔊</button>
+  </header>
+
+  <div class="setup">
+    <button class="btn preset on" data-a="168" data-b="7" data-t="candy">🍬 168 ÷ 7</button>
+    <button class="btn preset" data-a="75" data-b="3" data-t="coin">🪙 75 ÷ 3</button>
+    <button class="btn preset" data-a="485" data-b="23" data-t="apple">🍎 485 ÷ 23</button>
+    <button class="btn preset" data-a="372" data-b="4" data-t="star">⭐ 372 ÷ 4</button>
+    <button class="btn preset" data-a="856" data-b="8" data-t="cookie">🍪 856 ÷ 8</button>
+    <span class="custom">
+      <input id="ia" type="number" min="1" max="999" inputmode="numeric" aria-label="被除數"> ÷
+      <input id="ib" type="number" min="2" max="30" inputmode="numeric" aria-label="除數">
+      <button class="btn blue" id="btnGo">出題！</button>
+      <button class="btn" id="btnRand" title="隨機出題">🎲</button>
+    </span>
+  </div>
+
+  <div class="layout">
+    <main class="card">
+      <div class="modes">
+        <button class="btn mode foot on" data-mode="foot">👣 大腳法<small>一次最多分一盒（10 個）</small></button>
+        <button class="btn mode long" data-mode="long">⚡ 直式除法<small>一位一位分，每位分到最多</small></button>
+      </div>
+
+      <div class="mascot">
+        <div class="bigfoot">🦍<small>阿腳</small></div>
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+      </div>
+
+      <div class="pool-head"><span id="poolTitle"></span><span class="count" id="poolCount"></span></div>
+      <div class="pool" id="pool" title="每 10 個裝成一盒，數盒子比數一顆一顆快多了！"></div>
+
+      <div class="ask" id="ask"></div>
+      <div class="chips" id="chips"></div>
+      <div class="tools">
+        <button class="btn" id="btnHint">💡 提示</button>
+        <button class="btn" id="btnUndo">↩ 退一步</button>
+        <button class="btn green" id="btnDemo">▶ 看阿腳示範</button>
+        <button class="btn" id="btnReset">🔄 重來</button>
+      </div>
+
+      <div class="friends" id="friends"></div>
+    </main>
+
+    <aside class="card record">
+      <h2 id="recTitle"></h2>
+      <table class="foot" id="foot"></table>
+      <div class="answer" id="answer" hidden></div>
+      <p class="tip" id="tip"></p>
+    </aside>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const THEMES = {
+  candy:  { icon: '🍬', item: '糖果', u: '顆', color: '#ff6b9d' },
+  coin:   { icon: '🪙', item: '金幣', u: '枚', color: '#f5b700' },
+  apple:  { icon: '🍎', item: '蘋果', u: '顆', color: '#ff5a4e' },
+  star:   { icon: '⭐', item: '貼紙', u: '張', color: '#4d96ff' },
+  cookie: { icon: '🍪', item: '餅乾', u: '片', color: '#c9844a' },
+};
+const ANIMALS = [...'🐶🐱🐰🦊🐻🐼🐨🐯🦁🐸🐵🐧🐤🦄🐷🐮🐹🐙🦖🐳'];
+const PLACE = { 1: '個位', 10: '十位', 100: '百位' };
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// steps：每一輪「每人分得的數量」。直式模式下第 k 步就是第 k 位（place(k)）
+let P, mode = 'foot', steps = [], busy = false, demo = false, timer = null, muted = false;
+const quotient = () => steps.reduce((s, n) => s + n, 0);
+const rem = () => P.a - P.b * quotient();
+
+/* ---------- 兩種方法的規則 ---------- */
+// 大腳法：保守地一次最多 10 個，不夠一盒了才用乘法收尾
+const footSuggest = (r, b) => r >= 10 * b ? 10 : Math.floor(r / b);
+const footRounds = (a, b) => { let n = 0; for (let r = a; r >= b; n++) r -= footSuggest(r, b) * b; return n; };
+// 直式：從第一個「夠分」的位數開始，一位一步
+const firstPlace = (a, b) => { let p = 10 ** (String(a).length - 1); while (p > 1 && Math.floor(a / p) < b) p /= 10; return p; };
+const longSteps = (a, b) => Math.round(Math.log10(firstPlace(a, b))) + 1;
+const place = k => firstPlace(P.a, P.b) / 10 ** k;
+const unitWord = p => p === 1 ? P.t.u : p === 10 ? '盒' : '個百';
+const done = () => mode === 'long' ? steps.length === longSteps(P.a, P.b) : rem() < P.b;
+
+/* ---------- 音效（WebAudio，不需外部檔案） ---------- */
+let ac;
+function beep(freq, dur = .08, type = 'triangle', when = 0) {
+  if (muted) return;
+  ac ??= new AudioContext();
+  const t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(.15, t);
+  g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g).connect(ac.destination);
+  o.start(t); o.stop(t + dur);
+}
+const fanfare = () => [523, 659, 784, 1047].forEach((f, i) => beep(f, .25, 'triangle', i * .13));
+
+/* ---------- 畫面 ---------- */
+function say(html, mood = '') {
+  const b = $('#bubble');
+  b.className = 'bubble';
+  void b.offsetWidth; // 重播動畫
+  b.className = 'bubble ' + mood;
+  b.innerHTML = html;
+}
+
+function renderPool(r) {
+  const dots = n => '<i class="dot"></i>'.repeat(n);
+  let h = `<div class="box">${dots(10)}</div>`.repeat(Math.floor(r / 10));
+  if (r % 10) h += `<div class="box loose">${dots(r % 10)}</div>`;
+  $('#pool').innerHTML = h || '<span class="empty">倉庫空空的～</span>';
+}
+
+// 大腳法紀錄：右邊直線記每輪的部分商
+function renderFoot() {
+  let r = P.a;
+  let h = `<tr><td class="op">${P.b} )</td><td class="top">${P.a}</td><td class="q"></td></tr>`;
+  steps.forEach((n, i) => {
+    r -= n * P.b;
+    const cls = i === steps.length - 1 ? 'new' : '';
+    const last = done() && i === steps.length - 1;
+    h += `<tr class="${cls}"><td class="op">−</td><td class="line">${n * P.b}</td><td class="q"><span class="qn">${n}</span></td></tr>
+          <tr class="${cls}"><td></td><td class="${last && r ? 'rem' : ''}">${r}</td><td class="q"></td></tr>`;
+  });
+  if (done()) h += `<tr><td></td><td></td><td class="sum">${quotient()}</td></tr>`;
+  $('#foot').className = 'foot';
+  $('#foot').innerHTML = h;
+}
+
+// 直式紀錄：每一位對齊一格，商寫在上面
+function renderLong() {
+  const L = String(P.a).length, col = p => L - Math.round(Math.log10(p)); // 第 0 格放除數
+  const row = () => Array.from({ length: L + 1 }, () => ({ t: '', c: '' }));
+  const put = (cells, x, end, c = '') => [...String(x)].reverse().forEach((ch, i) => cells[end - i] = { t: ch, c });
+  const q = row(), d = row(), rows = [q, d];
+  d[0] = { t: `${P.b} )`, c: 'op' };
+  put(d, P.a, L, 'top');
+  let r = P.a;
+  steps.forEach((amt, k) => {
+    const p = place(k), dig = amt / p, isNew = k === steps.length - 1 ? ' new' : '';
+    q[col(p)] = { t: dig, c: 'qd' + isNew };
+    const pr = row();
+    pr[0] = { t: '−', c: 'op' + isNew };
+    put(pr, dig * P.b, col(p), 'line' + isNew);
+    r -= amt * P.b;
+    const rr = row();
+    if (p > 1) put(rr, Math.floor(r / (p / 10)), col(p / 10), isNew); // 把下一位「搬下來」
+    else put(rr, r, col(1), (r ? 'rem' : '') + isNew);
+    rows.push(pr, rr);
+  });
+  $('#foot').className = 'foot long';
+  $('#foot').innerHTML = rows.map(cells => `<tr>${cells.map(x => `<td class="${x.c}">${x.t}</td>`).join('')}</tr>`).join('');
+}
+
+function controls() {
+  const d = done();
+  document.querySelectorAll('.chip').forEach(c => c.disabled = d || busy);
+  $('#btnHint').disabled = d || busy;
+  $('#btnUndo').disabled = !steps.length || busy;
+}
+
+function render() {
+  const r = rem(), { u, icon, item } = P.t, d = done();
+  $('#poolTitle').textContent = `${icon} ${item}倉庫`;
+  $('#poolCount').textContent = `還有 ${r} ${u} = ${Math.floor(r / 10)} 盒 + ${r % 10} ${u}`;
+  renderPool(r);
+  mode === 'long' ? renderLong() : renderFoot();
+  document.querySelectorAll('.friend .got').forEach(g => g.textContent = quotient());
+  if (d) $('#ask').textContent = '全部分完囉！🎉';
+  else if (mode === 'long') {
+    const p = place(steps.length);
+    $('#ask').textContent = `⚡ ${PLACE[p]}：有 ${Math.floor(r / p)} ${unitWord(p)}，每人分幾${unitWord(p)}？`;
+  } else $('#ask').textContent = `👣 第 ${steps.length + 1} 輪：每人分幾${u}？`;
+  $('#answer').hidden = !d;
+  if (d) {
+    const foot = footRounds(P.a, P.b), long = longSteps(P.a, P.b);
+    $('#answer').innerHTML = `${P.a} ÷ ${P.b} = ${quotient()}${r ? ` … ${r}` : ''}` +
+      (mode === 'foot' ? `<small>${steps.join(' + ')} = ${quotient()}</small>` : '') +
+      `<div class="vs">👣 大腳法：${mode === 'foot' ? steps.length : foot} 輪<br>⚡ 直式除法：${long} 步</div>` +
+      (mode === 'foot' ? '<button class="btn zap" id="btnTryLong">⚡ 換直式除法挑戰！</button>' : '');
+  }
+  $('#friends').classList.remove('party');
+  controls();
+}
+
+function buildChips() {
+  const chip = (n, cls = '') => `<button class="btn chip ${cls}" data-n="${n}">${n}</button>`;
+  const r = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => chip(from + i)).join('');
+  $('#chips').innerHTML = mode === 'long'
+    ? `<div><label>直式每一位只能分一次，要分到最多！</label>${r(0, 9)}</div>`
+    : `<div><label>小步</label>${r(1, 9)}</div><div><label>一盒 👣</label>${chip(10, 'big')}</div>`;
+}
+
+function buildFriends() {
+  $('#friends').innerHTML = Array.from({ length: P.b }, (_, i) =>
+    `<div class="friend" style="--i:${i}"><div class="face">${ANIMALS[i % ANIMALS.length]}</div><span class="got">0</span> ${P.t.icon}</div>`
+  ).join('');
+}
+
+/* ---------- 飛行動畫：從倉庫飛到每位朋友 ---------- */
+function fly(n, onDone) {
+  const cards = [...document.querySelectorAll('.friend')];
+  if (reduced || !n) return onDone();
+  const from = $('#pool').getBoundingClientRect();
+  const per = Math.min(n, 3); // ponytail: 每人最多飛 3 顆代表，避免 23 人 × 100 顆卡頓
+  const dur = mode === 'long' ? 450 : 750; // 直式飛得快，感受速度差
+  let landed = 0;
+  cards.forEach((card, i) => {
+    const to = card.getBoundingClientRect();
+    for (let k = 0; k < per; k++) {
+      const s = document.createElement('span');
+      s.className = 'fly';
+      s.textContent = P.t.icon;
+      document.body.append(s);
+      const x0 = from.left + from.width * Math.random(), y0 = from.top + from.height * Math.random();
+      const x1 = to.left + to.width / 2 - 11, y1 = to.top + 8;
+      s.animate([
+        { transform: `translate(${x0}px,${y0}px) scale(.6)` },
+        { transform: `translate(${(x0 + x1) / 2}px,${Math.min(y0, y1) - 80}px) scale(1.3)` },
+        { transform: `translate(${x1}px,${y1}px) scale(.8)` },
+      ], { duration: dur, delay: i * 60 + k * 110, easing: 'ease-in-out', fill: 'both' }).onfinish = () => {
+        s.remove();
+        if (k < per - 1) return;
+        card.querySelector('.got').textContent = quotient();
+        card.classList.remove('bump'); void card.offsetWidth; card.classList.add('bump');
+        if (i % Math.ceil(cards.length / 8) === 0) beep(700 + Math.random() * 400, .06);
+        if (++landed === cards.length) onDone();
+      };
+    }
+  });
+}
+
+/* ---------- 遊戲流程 ---------- */
+function give(amount, msg) {
+  const r = rem(), need = amount * P.b;
+  busy = true;
+  controls();
+  document.querySelectorAll('#pool .dot').forEach((d, i) => i >= r - need && d.classList.add('gone'));
+  steps.push(amount);
+  say(msg);
+  beep(440 + steps.length * 80, .12, mode === 'long' ? 'sawtooth' : 'triangle');
+  fly(amount, () => {
+    busy = false;
+    render();
+    if (done()) win();
+    else if (demo) timer = setTimeout(demoNext, mode === 'long' ? 900 : 1200);
+  });
+}
+
+function chooseFoot(n) {
+  const r = rem(), need = n * P.b, { u } = P.t;
+  if (need > r) {
+    beep(160, .3, 'square');
+    return say(`哎呀！每人 ${n} ${u}，${P.b} 人要 ${P.b} × ${n} = <b>${need}</b> ${u}，可是倉庫只剩 <b>${r}</b> ${u}，不夠分啦～ 換小一點的數字試試？`, 'oops');
+  }
+  const left = r - need;
+  let msg = `每人分 <b>${n}</b> ${u}！${P.b} × ${n} = ${need}，倉庫拿走 ${need} ${u}，還剩 <b>${left}</b> ${u}。`;
+  if (left >= 10 * P.b) msg += ` 還夠每人再分一盒，繼續！👣`;
+  else if (left >= P.b) msg += ` 不夠每人分一盒了（要 ${10 * P.b} ${u}），想想 ${P.b} × 幾 最接近 ${left}？`;
+  if (steps.length >= 3 && left >= P.b) msg += ' 😮‍💨 一盒一盒分……好像有點慢？';
+  give(n, msg);
+}
+
+function chooseLong(d) {
+  const r = rem(), p = place(steps.length), units = Math.floor(r / p), w = unitWord(p);
+  if (d * P.b > units) {
+    beep(160, .3, 'square');
+    return say(`哎呀！每人 ${d} ${w}，要 ${P.b} × ${d} = <b>${d * P.b}</b> ${w}，可是只有 <b>${units}</b> ${w}，不夠分啦～`, 'oops');
+  }
+  if ((d + 1) * P.b <= units) {
+    beep(260, .2, 'square');
+    return say(`還可以更多喔！${P.b} × ${d + 1} = ${(d + 1) * P.b} 也沒超過 ${units}。直式每一位只分一次，要<b>一次分到最多</b>！`, 'oops');
+  }
+  let msg;
+  if (d === 0) msg = `⚡ ${PLACE[p]}：${units} ${w}不夠分給 ${P.b} 人，商在這一位寫 <b>0</b>！`;
+  else {
+    msg = `⚡ ${PLACE[p]}：${units} ${w} ÷ ${P.b} 人，每人 <b>${d}</b> ${w}`;
+    if (p > 1) msg += `（= ${d * p} ${P.t.u}）`;
+    msg += `，一口氣拿走 <b>${d * p * P.b}</b> ${P.t.u}！`;
+  }
+  const left = units - d * P.b;
+  if (p > 1) msg += left ? ` 剩下的 ${left} ${w}拆開，跟${PLACE[p / 10]}合起來繼續分。` : ` 接著看${PLACE[p / 10]}。`;
+  give(d * p, msg);
+}
+
+function win() {
+  stopDemo();
+  const r = rem(), { u } = P.t, foot = footRounds(P.a, P.b), long = longSteps(P.a, P.b);
+  let msg = `🎉 分完了！每位朋友都拿到 <b>${quotient()}</b> ${u}` +
+    (r ? `，還剩 <b>${r}</b> ${u}不夠每人再分 1 ${u}，這就是「餘數」！` : '，一個都不剩，剛剛好！');
+  msg += mode === 'foot'
+    ? ` 你分了 <b>${steps.length}</b> 輪，有點累吧？按右邊「⚡ 換直式除法挑戰」，看看能多快！`
+    : ` 大腳法要 ${foot} 輪，直式只要 <b>${long}</b> 步，快多了吧！⚡`;
+  say(msg, 'yay');
+  fanfare();
+  $('#friends').classList.add('party');
+  if (reduced) return;
+  const colors = ['#ff6b9d', '#ffd93d', '#4d96ff', '#2fbf71', '#8b5cf6'];
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('i');
+    c.className = 'confetti';
+    c.style.background = colors[i % 5];
+    c.style.left = Math.random() * 100 + 'vw';
+    document.body.append(c);
+    c.animate([
+      { transform: 'translateY(0) rotate(0)' },
+      { transform: `translate(${(Math.random() - .5) * 200}px,105vh) rotate(${Math.random() * 720}deg)` },
+    ], { duration: 1800 + Math.random() * 1500, delay: Math.random() * 400, easing: 'cubic-bezier(.2,.6,.4,1)', fill: 'backwards' })
+      .onfinish = () => c.remove();
+  }
+}
+
+// 目前這一步的正確/建議答案（對應 chip 上的數字）
+function best() {
+  if (mode === 'foot') return footSuggest(rem(), P.b);
+  return Math.floor(Math.floor(rem() / place(steps.length)) / P.b);
+}
+
+function choose(n) {
+  if (busy || done()) return;
+  mode === 'long' ? chooseLong(n) : chooseFoot(n);
+}
+
+function demoNext() {
+  if (!demo || done()) return stopDemo();
+  const s = best(), c = $(`.chip[data-n="${s}"]`);
+  c.classList.add('press');
+  setTimeout(() => c.classList.remove('press'), 200);
+  choose(s);
+}
+
+function stopDemo() {
+  demo = false;
+  clearTimeout(timer);
+  $('#btnDemo').textContent = '▶ 看阿腳示範';
+}
+
+function intro() {
+  const { u, item } = P.t, a = P.a, b = P.b;
+  if (mode === 'foot') return say(`👣 倉庫有 <b>${a}</b> ${u}${item}（${Math.floor(a / 10)} 盒又 ${a % 10} ${u}），要平分給 <b>${b}</b> 位好朋友！` +
+    `大腳法每一輪最多每人分一盒（10 ${u}），一盒一盒慢慢分。`);
+  const p = place(0), top = 10 ** (String(a).length - 1);
+  say(`⚡ 直式除法：一位一位分，<b>每一位一次分到最多</b>！` +
+    (p < top ? `${PLACE[top]}只有 ${Math.floor(a / top)}，不夠分 ${b} 人，所以從${PLACE[p]}開始：` : `從${PLACE[p]}開始：`) +
+    `${Math.floor(a / p)} ${unitWord(p)}分給 ${b} 人。`);
+}
+
+function load(a, b, t) {
+  stopDemo();
+  busy = false;
+  P = { a, b, t: THEMES[t], key: t };
+  steps = [];
+  document.body.style.setProperty('--item', P.t.color);
+  $('#ia').value = a;
+  $('#ib').value = b;
+  buildFriends();
+  render();
+  intro();
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $('#recTitle').textContent = m === 'long' ? '⚡ 直式除法' : '👣 大腳算式';
+  $('#tip').textContent = m === 'long'
+    ? '商一位一位寫在上面；每減完一次，就把下一位「搬下來」繼續分。'
+    : '右邊直線後面記下每一輪「每人分幾個」，最後全部加起來就是商！';
+  buildChips();
+  load(P.a, P.b, P.key);
+}
+
+/* ---------- 事件 ---------- */
+$('#chips').onclick = e => { const n = e.target.dataset.n; if (n) choose(+n); };
+document.querySelectorAll('.mode').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+$('#answer').onclick = e => { if (e.target.id === 'btnTryLong') setMode('long'); };
+
+$('#btnHint').onclick = () => {
+  const s = best(), { u } = P.t;
+  if (mode === 'long') {
+    const p = place(steps.length), units = Math.floor(rem() / p);
+    say(`💡 ${P.b} × ${s} = ${s * P.b} 沒超過 ${units}，${P.b} × ${s + 1} = ${(s + 1) * P.b} 就超過了，所以每人 <b>${s}</b> ${unitWord(p)}。`);
+  } else say(`💡 試試每人分 <b>${s}</b> ${u}：${P.b} × ${s} = ${s * P.b}，沒有超過 ${rem()} 喔！`);
+  const c = $(`.chip[data-n="${s}"]`);
+  c.classList.remove('glow'); void c.offsetWidth; c.classList.add('glow');
+};
+
+$('#btnUndo').onclick = () => {
+  stopDemo();
+  steps.pop();
+  render();
+  say(`退回一步，倉庫又有 <b>${rem()}</b> ${P.t.u}了。`);
+};
+
+$('#btnReset').onclick = () => load(P.a, P.b, P.key);
+
+$('#btnDemo').onclick = () => {
+  if (demo) return stopDemo();
+  if (done()) { steps = []; render(); }
+  demo = true;
+  $('#btnDemo').textContent = '⏸ 停止示範';
+  say(mode === 'long' ? '看我的！每一位一次分到最多 ⚡' : '看我的！一盒一盒分，最後用乘法收尾 👣');
+  timer = setTimeout(demoNext, 1000);
+};
+
+$('#btnMute').onclick = e => { muted = !muted; e.target.textContent = muted ? '🔇' : '🔊'; };
+
+document.querySelectorAll('.preset').forEach(btn => btn.onclick = () => {
+  document.querySelectorAll('.preset').forEach(b => b.classList.toggle('on', b === btn));
+  load(+btn.dataset.a, +btn.dataset.b, btn.dataset.t);
+});
+
+const randomTheme = () => { const k = Object.keys(THEMES); return k[Math.floor(Math.random() * k.length)]; };
+function custom() {
+  const a = +$('#ia').value, b = +$('#ib').value;
+  if (!Number.isInteger(a) || !Number.isInteger(b) || b < 2 || b > 30 || a < b || a > 999)
+    return say('題目要這樣出喔：被除數最多 999，除數 2～30，而且被除數要比除數大 😊', 'oops');
+  document.querySelectorAll('.preset').forEach(b => b.classList.remove('on'));
+  load(a, b, randomTheme());
+}
+$('#btnGo').onclick = custom;
+document.querySelectorAll('.custom input').forEach(i => i.onkeydown = e => e.key === 'Enter' && custom());
+$('#btnRand').onclick = () => {
+  const b = 2 + Math.floor(Math.random() * 8), q = 30 + Math.floor(Math.random() * 70);
+  $('#ia').value = b * q + Math.floor(Math.random() * b);
+  $('#ib').value = b;
+  custom();
+};
+
+// 自我檢查：直式一位一位分，商與餘數必須和 Math.floor / % 一致
+for (const [a, b] of [[168, 7], [75, 3], [485, 23], [856, 8], [999, 2], [30, 30], [618, 3]]) {
+  const p0 = firstPlace(a, b);
+  let r = a, q = 0;
+  for (let p = p0; p >= 1; p /= 10) { const d = Math.floor(Math.floor(r / p) / b); console.assert(d <= 9, 'digit', a, b); q += d * p; r -= d * p * b; }
+  console.assert(q === Math.floor(a / b) && r === a % b, 'long', a, b);
+  console.assert(footRounds(a, b) >= longSteps(a, b), 'rounds', a, b);
+}
+
+P = { a: 168, b: 7, key: 'candy' };
+setMode('foot');
+</script>
+</body>
+</html>
